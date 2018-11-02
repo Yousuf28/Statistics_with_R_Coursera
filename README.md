@@ -11,3 +11,15 @@ Click link below to see each project
 
 ***
 
+- [Linear Regression and Modeling](http://rpubs.com/Yousuf/435852)
+
+***
+
+
+## certificates
+
+***
+- [Introduction to Probability and Data](https://www.coursera.org/account/accomplishments/certificate/WBMSZCNP7U3D)
+
+
+***
