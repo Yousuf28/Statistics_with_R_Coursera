@@ -7,3 +7,7 @@ Click link below to see each project
 - [Introduction to Probability and Data](http://rpubs.com/Yousuf/435379)
 
 ***
+- [Inferential Statistics](http://rpubs.com/Yousuf/435850)
+
+***
+
