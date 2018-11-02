@@ -1,0 +1,531 @@
+---
+title: "Modeling and prediction for movies"
+output: 
+  prettydoc::html_pretty: 
+    fig_height: 6
+    fig_width: 9
+    highlight: github
+    theme: tactile
+    toc: yes
+    df_print: kable
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(tidyverse)
+library(statsr)
+library(corrgram)
+```
+
+### Load data
+
+```{r load-data}
+load("movies.Rdata")
+```
+
+* * *
+
+## Part 1: Data
+
+
+* * *
+
+## Part 2: Research question
+Every year a lot of new movies get released. So it is very difficult to choose which movie should watch.  
+Imdb rating is one way to tell that I should watch the movie or not. Now It would be very interesting If I could build a model that can predict imdb rating. So the question is:    
+Can imdb_rating be predicted from    
+* runtime   
+* title_type   
+* genre  
+* mpaa_rating  
+* critics_rating  
+* audience_rating  
+* audience_score   
+* best_pic_nom  
+* best_pic_win   
+* top200_box
+
+* * *
+
+## Part 3: Exploratory data analysis  
+
+### Correlation Matrix  
+
+I am going to start with a correlation matrix of numerical variables.  
+
+
+```{r correlation matrix}
+# configure output
+
+# corrgram libraby is used here  
+
+corrgram(movies, order = TRUE, 
+         lower.panel = panel.shade, 
+         upper.panel = panel.pie, 
+         text.panel = panel.txt)
+```
+  
+
+From the correlation matrix I can see that ibdb_rating is highly correlated with critics score and audience score. Also imdb rating correlated with runtime and imdb number of votes.  
+
+### Subset the movies data set     
+
+
+
+I will build a dataframe with column of my interests. The reason for choosing certain variable explained in modeling part.
+I will my dataframe movies_1. There are few way handing missing data but I will drop NA value from my data set for now. 
+
+
+
+```{r select columns}
+
+movies_1 <- select( movies,
+                 imdb_rating,
+                 runtime,
+                 title_type,
+                 genre,
+                 mpaa_rating,
+                 critics_rating,
+                 audience_rating,
+                 audience_score,
+                 best_pic_nom,
+                 best_pic_win,
+                 top200_box)
+
+   
+
+```
+
+```{r drop_na}
+movies_1 <- movies_1 %>% drop_na()
+```
+  
+
+lets check the structure of the dataset with str() function.  
+there are few numeric column and rest are factor column.  
+
+
+  
+```{r structure}
+str(movies_1)
+```
+  
+
+I can see summary of my data set using summary() function.  Summary function come back with minimum, maximum, mean, median, 1st quartile and 3rd quartile value. For the factor variable it come back with number of case of each level. There is no missing values in the dataset. 
+
+
+  
+
+```{r summary}
+summary(movies_1)
+```
+
+
+### Now visualise our data.  
+
+#### Boxplot  
+
+```{r boxplot , warning=FALSE, message=FALSE, fig.align='center'}
+
+# I will use plot_grid function from cowplot here.
+
+library(cowplot)
+
+q1 <- ggplot(movies_1, aes(x ='', y = runtime))+
+    geom_boxplot()
+q2 <- ggplot(movies_1, aes(x ='', y = audience_score))+
+    geom_boxplot()
+q3 <- ggplot(movies_1, aes(x ='', y = imdb_rating))+
+    geom_boxplot()
+plot_grid(q1,q2,q3, ncol = 3, nrow = 1)
+```
+
+
+From the above boxplot I can see there are outliers in runtime and imdb rating. Right now, I am not worried about outliers. I will check later on whether these outlier are influential or not.
+
+#### HISTOGRAM
+
+```{r histogram, warning=FALSE, message=FALSE}
+h1 <- ggplot(movies_1, aes(runtime))+
+    geom_histogram(binwidth = 10)
+
+h2 <- ggplot(movies_1, aes(audience_score))+
+    geom_histogram(binwidth = 10)
+
+h3 <- ggplot(movies_1, aes(imdb_rating))+
+    geom_histogram()
+plot_grid(h1,h2,h3, ncol = 3, nrow = 1)
+```
+
+
+ From above plot, Except some outliers all numeric varible seems normally distributed.
+
+
+#### QQ-PLOT
+
+
+
+```{r qq-plot}
+qq1 <- ggplot(movies_1, aes(sample = runtime) )+
+    stat_qq()+
+    ggtitle('runtime')
+qq2 <- ggplot(movies_1, aes(sample = audience_score) )+
+    stat_qq()+ ggtitle('audience score')
+qq3 <- ggplot(movies_1, aes(sample = imdb_rating) )+
+    stat_qq()+ ggtitle('imdb_rating')
+plot_grid(qq1,qq2,qq3, ncol = 3, nrow = 1)
+```
+
+The qq plot is not stright because there are outliers, otherwise it seems fairly linear.
+
+* * * 
+
+## Part 4: Modeling
+
+### Specify which variables to consider for the full model
+
+* **imdb_rating** - Rating on IMDB  
+* **runtime** - Runtime of movie (in minutes)     
+* **title_type** - Type of movie (Documentary, Feature Film, TV Movie)    
+* **genre** - Genre of movie (Action & Adventure, Comedy, Documentary, Drama, Horror, Mystery & Suspense, Other)   
+* **mpaa_rating** - MPAA rating of the movie (G, PG, PG-13, R, Unrated)  
+* **critics_rating** - Categorical variable for critics rating on Rotten Tomatoes (Certified Fresh, Fresh, Rotten)  
+* **audience_rating** - Categorical variable for audience rating on Rotten Tomatoes (Spilled, Upright)  
+* **audience_score** - Audience score on Rotten Tomatoes     
+* **best_pic_nom** - Whether or not the movie was nominated for a best picture Oscar (no, yes)  
+* **best_pic_win** - Whether or not the movie won a best picture Oscar (no, yes)   
+* **top200_box** - Whether or not the movie is in the Top 200 Box Office list on BoxOfficeMojo (no, yes)  
+
+### Reasoning for excluding certain variables
+
+Factor variable studio excluded because it has 211 level. all charcter variable excluded beacause it is not appropriate for regression model. critic score is excluded since it highly correlated with audience score and I have already added audience score in my model. imdb number of vote also excluded for same reason. otherwise, either theater release year or dvd release year is not much related to imdb rating so all year day month variable are excluded. 
+
+### Reasoning for choice of model selection method 
+
+Since adjusted $R^2$ is more reliable than p value selection so  I will use backward elimination using adjusted $R^2$ value.
+
+
+### Carrying out the model selection correctly  
+
+```{r model_full}
+
+model_full <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating+
+                 critics_rating+
+                 audience_rating+
+                 audience_score+
+                 best_pic_nom+
+                 best_pic_win+
+                 top200_box, data = movies_1) 
+```
+          
+Here is the summary and anova table for model.
+
+```{r summary of model}
+summary(model_full)
+```
+
+```{r anova of model}
+anova(model_full)
+```
+
+#### Backward eliminaiton model selection.
+
+ I will start with full model and I will drop one variable at a time from the end.  
+  
+  
+```{r backward elimination}
+
+
+model_full <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating+
+                 critics_rating+
+                 audience_rating+
+                 audience_score+
+                 best_pic_nom+
+                 best_pic_win+
+                 top200_box, data = movies_1) 
+
+model_1 <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating+
+                 critics_rating+
+                 audience_rating+
+                 audience_score+
+                 best_pic_nom+
+                 best_pic_win, data = movies_1)
+
+model_2 <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating+
+                 critics_rating+
+                 audience_rating+
+                 audience_score+
+                 best_pic_nom,  data = movies_1)
+
+model_3 <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating+
+                 critics_rating+
+                 audience_rating+
+                 audience_score
+                 , data = movies_1)
+
+model_4 <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating+
+                 critics_rating+
+                 audience_rating, data = movies_1)
+
+
+model_5 <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating+
+                 critics_rating, data = movies_1)
+
+model_6 <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre+
+                 mpaa_rating, data = movies_1)
+
+model_7 <- lm(imdb_rating ~
+                 runtime+
+                 title_type+
+                 genre,
+                 data = movies_1)
+
+
+model_8 <- lm(imdb_rating ~
+                 runtime+
+                 title_type,
+                 data = movies_1)
+
+
+model_9 <- lm(imdb_rating ~
+                 runtime,
+                 data = movies_1)
+
+```
+
+Now I will compare the $R^2$ value for each model.  
+
+
+```{r R-squared values, results='asis'}
+# model_full
+sprintf('R-squared value of model_full is : %s ',  
+        round(summary(model_full)$adj.r.squared,digit=5))
+# model_1
+sprintf('R-squared value of model_1 is : %s ',  
+        round(summary(model_1)$adj.r.squared,digit=5))
+# model_2
+sprintf('R-squared value of model_2 is : %s ',  
+        round(summary(model_2)$adj.r.squared,digit=5))
+# model_3
+sprintf('R-squared value of model_3 is : %s ',  
+        round(summary(model_3)$adj.r.squared,digit=5))
+# model_4
+sprintf('R-squared value of model_4 is : %s ',  
+        round(summary(model_4)$adj.r.squared,digit=5))
+# model_5
+sprintf('R-squared value of model_5 is : %s ',  
+        round(summary(model_5)$adj.r.squared,digit=5))
+# model_6
+sprintf('R-squared value of model_6 is : %s ',  
+        round(summary(model_6)$adj.r.squared,digit=5))
+# model_7
+sprintf('R-squared value of model_7 is : %s ',  
+        round(summary(model_7)$adj.r.squared,digit=5))
+# model_8
+sprintf('R-squared value of model_8 is : %s ',  
+        round(summary(model_8)$adj.r.squared,digit=5))
+# model_9
+sprintf('R-squared value of model_9 is : %s ',  
+        round(summary(model_9)$adj.r.squared,digit=5))
+
+```
+
+
+Lets build a table for $R^2$ values.  
+
+
+```{r R2 value comparison}
+model_number <- c("model_full", "model_1","model_2","model_3","model_4","model_5",
+                  "model_6","model_7","model_8","model_9")
+R_squared_value <- c(0.80132,0.80162,0.80183,0.80215,0.63498,0.50581,
+                     0.28753,0.27103,0.20142,0.07052)
+R_square_table <- cbind(model_number, R_squared_value)
+R_square_table <- as.data.frame(R_square_table)
+
+R_square_table
+```
+
+
+From the above output, model_3 is with highest R-squared value.
+
+### Model diagnostics  
+
+#### Linearity Check
+
+Residual vs fitted plot check if there is any non linear relationshiop between predictor variable and outcome variable. Since below plot show no disticnt pattern and the residuals is equally spread around horizontal line so there is no non linear relationship. 
+ 
+```{r linearity check}
+linearity_plot <- plot(model_3,1)
+
+```
+
+
+####  Normality check  
+ 
+Normal Q-Q plot check whether residuals are normally distributed. Residuals would be normally distributed if qq plot is straight line. In my case the line is not totally stright, the lower portion of the line is curved. Eventhough few residuals are very far from stright line,  overall the line does not violate the normality.
+
+```{r normality check}
+
+normality_plot <- plot(model_3, 2)
+
+
+```
+
+Here is the histogram of residuals. Mean of residulas around 0.   
+
+```{r histogram of residuals}
+
+hist(model_3$residuals, 
+     main = 'Histogram for Residuals', xlab = 'Residuals')
+
+```
+
+
+#### Homoscedasticity check  
+
+This is scale-location or spread location plot. Some data points are far away from mean that make red horizontal line little curved. But over all residuals are homogenously spread out.  
+
+```{r homoscedasticity check}
+
+homoscedas_plot <- plot(model_3, 3)
+
+
+```
+
+
+#### Influential observation  
+
+Cook's distance measure the influence of each observation on regression coefficients. Cook's distance value more than one should be further investigate. In my plot no cook's distance value more than 1. But some cook's distance value are far more than others like observation number 629, 502, and 66. 
+
+```{r cooks distance}
+cook_distance_plot <- plot(model_3, 4)
+
+```
+
+
+
+### Interpretation of model coefficients
+
+from the summary of the model, 
+coeffcient of audience_score is 0.047596, which mean as audience score increase by one unit, imdb_rating increase by 0.047596 where all other variable is held constant.
+
+similarly, coeffcient of runtime is 0.005829, which mean as runtime increase by one unit, imdb_rating increase by 0.005829 where all other variable is held constant. 
+
+all coefficients can be explained in the same way.
+when all coefficient is zero the imdb rating is 3.65 which is intercept. 
+
+
+* * *
+
+## Part 5: Prediction
+
+### Correct prediction
+
+I have selected movie 'fantastic beast and where to find them' from 2016. 
+
+I will build a test data frame with all data that I collected for movie 'fantastic beast and where to find them'. 
+
+```{r prediction_test}
+imdb_rating <- c(7.4)
+runtime <- c(132)
+title_type <- c('Feature Film')
+genre <- c('Action & Adventure')
+mpaa_rating <- c('PG-13')
+critics_rating <- c('Certified Fresh')
+audience_rating <- c('Upright')
+audience_score <- c(79)
+
+test <- data.frame(imdb_rating,runtime, title_type, genre,
+                   mpaa_rating, critics_rating, audience_rating, audience_score)
+
+```
+
+### Correct quantification of uncertainty around this prediction with a prediction interval
+
+```{r prediction interval}
+prediction_interval <- predict(model_3, test, interval = 'predict', level = 0.95 )
+prediction_interval
+```
+
+```{r prediction}
+prediction <- predict(model_3, test )
+prediction
+```
+
+
+```{r predicted vs real}
+results <- cbind(prediction,test$imdb_rating )
+colnames(results) <- c('pred', 'real')
+results <- as.data.frame(results)
+results
+```
+
+```{r MSE}
+
+mse <-  mean((results$real - results$pred)^2)
+sprintf("Mean Squared Error (MSE) is: %s ", round(mse, 4))
+```
+
+```{r root mean squared error}
+rmse <- mse^0.5
+sprintf("Root Mean Squared Error(RMSE) is: %s ", round(rmse, 4))
+```
+
+```{r}
+SSE <- sum((results$pred - results$real)^2)
+SST <- sum((mean(movies_1$imdb_rating)- results$real)^2)
+R2 <- 1- SSE/SST
+sprintf("R-squared value is: %s ", round(R2, 4))
+```
+
+
+
+
+
+### Reference(s) for where the data for this movie come from  
+
+**Movie** - **FANTASTIC BEASTS AND WHERE TO FIND THEM (2016)**   
+**data source link** -
+[imdb](https://www.imdb.com/title/tt3183660/?ref_=nv_sr_2) and   [rottentomatoes](https://www.rottentomatoes.com/m/fantastic_beasts_and_where_to_find_them)
+
+* * *
+
+## Part 6: Conclusion
+
+There are some variables that significatly importrant to predict rating others are not. In prediction we use only one data point so prediction might not represents overall scenario.
+
+
