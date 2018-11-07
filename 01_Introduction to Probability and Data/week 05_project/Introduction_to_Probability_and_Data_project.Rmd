@@ -1,0 +1,549 @@
+---
+title:  <center>Exploring the BRFSS Data </center>
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+    toc: yes
+    keep_md: true
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(tidyverse)
+```
+
+### Load data
+
+
+```{r load-data}
+load("brfss2013.RData")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+Data provided by course instructor. <br>
+The Behavioral Risk Factor Surveillance System (BRFSS) is a collaborative project between all of the states in the United States (US) and participating US territories and the Centers for Disease Control and Prevention (CDC). The BRFSS goal is to collect uniform, state-specific data on preventive health practices and risk behaviors that are linked to chronic diseases, injuries, and preventable infectious diseases that affect the adult population. (from brfss codebook provided by instructor)
+
+Participant were chosen by random. They were interviewed over phone.
+
+* * *
+
+## Part 2: Research questions
+
+**Research quesion 1:**  
+
+How sleep time vary in differnt group?  
+In sex group, we will see is there any difference in sleep time between men and women.  
+In the same way we will see is there any difference in sleep time in the following groups:  
+Marital status, education, income, employment and internet users.  
+  
+varaible will be explored:  
+sleptim1 - On average, How many hours of sleep do you get in a 24-hour period?  
+sex - Respondents Sex  
+marital - Marital Status  
+educa - Education level  
+income2 - Income level  
+employ1 - Employment Status  
+internet - Internet use in the past 30 days?  
+
+**Research quesion 2:**  
+
+How general health differ across different educational level?  
+We will also see how number of the days physical health not good differ at educational level.  
+
+Variable to be explored.  
+educa - Education level.  
+genhlth - General Health.    
+physhlth - Number of days physical health not good.  
+
+
+**Research quesion 3:**  
+
+How stroke occureance differ in sex and income level?  
+variable to be explored:  
+cvdstrk3 - Ever diagnosed with a stroke  
+sex - Respondents sex  
+income2 - Income Level  
+
+
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+### Research Question 01
+
+First we will create a dataframe(df) that contain all columns we will be working on.
+
+```{r}
+df <- select(brfss2013, 
+             sleptim1,
+             sex,
+             marital,
+             educa,
+             income2,
+             employ1,
+             internet,
+             genhlth,
+             physhlth,
+             cvdstrk3)
+```
+
+
+**Research quesion 1:** 
+
+#### Sleep summary statistics {.tabset}  
+
+##### sleep time vs sex  
+
+```{r}
+sleep_sex_summary <- select(df, sleptim1, sex) %>% 
+    filter(sleptim1 <= 24 &
+               sex != 'NA') %>% 
+    group_by(sex) %>% 
+    summarise(sleep_time_mean = mean(sleptim1), 
+              sd = sd(sleptim1),
+              median = median(sleptim1), 
+              min = min(sleptim1), 
+              max = max(sleptim1), 
+              Q1 = quantile(sleptim1, probs = 0.25), 
+              Q3 = quantile(sleptim1, probs = 0.75),
+              IQR = IQR(sleptim1))
+
+sleep_sex_summary
+```
+
+##### sleep time vs marital status  
+
+```{r}
+sleep_marital_summary <- select(df, sleptim1, marital) %>% 
+    filter(sleptim1 <= 24 &
+               marital != 'NA') %>% 
+    group_by(marital) %>% 
+    summarise(sleep_time_mean = mean(sleptim1), 
+              sd = sd(sleptim1),
+              median = median(sleptim1), 
+              min = min(sleptim1), 
+              max = max(sleptim1), 
+              Q1 = quantile(sleptim1, probs = 0.25), 
+              Q3 = quantile(sleptim1, probs = 0.75),
+              IQR = IQR(sleptim1))
+
+sleep_marital_summary
+```
+
+
+##### sleep time vs education level  
+
+```{r sleep_education_summary}
+options(width = 100)
+
+sleep_education_summary <- select(df, sleptim1, educa) %>% 
+    filter(sleptim1 <= 24 &
+               educa != 'NA') %>% 
+    group_by(educa) %>% 
+    summarise(sleep_time_mean = mean(sleptim1), 
+              sd = sd(sleptim1),
+              median = median(sleptim1), 
+              min = min(sleptim1), 
+              max = max(sleptim1), 
+              Q1 = quantile(sleptim1, probs = 0.25), 
+              Q3 = quantile(sleptim1, probs = 0.75),
+              IQR = IQR(sleptim1)) %>% 
+    print()
+
+```
+
+
+##### Sleep time vs Income level  
+
+```{r sleep_income_summary}
+options(width = 100)
+sleep_income_summary <- select(df, sleptim1, income2) %>% 
+    filter(sleptim1 <= 24 &
+               income2 != 'NA') %>% 
+    group_by(income2) %>% 
+    summarise(sleep_time_mean = mean(sleptim1), 
+              sd = sd(sleptim1),
+              median = median(sleptim1), 
+              min = min(sleptim1), 
+              max = max(sleptim1), 
+              Q1 = quantile(sleptim1, probs = 0.25), 
+              Q3 = quantile(sleptim1, probs = 0.75),
+              IQR = IQR(sleptim1))
+
+sleep_income_summary
+```
+
+
+##### Sleep time vs Employment status  
+
+```{r sleep_employment_summary}
+sleep_employment_summary <- select(df, sleptim1, employ1) %>% 
+    filter(sleptim1 <= 24 &
+               employ1 != 'NA') %>% 
+    group_by(employ1) %>% 
+    summarise(sleep_time_mean = mean(sleptim1), 
+              sd = sd(sleptim1),
+              median = median(sleptim1), 
+              min = min(sleptim1), 
+              max = max(sleptim1), 
+              Q1 = quantile(sleptim1, probs = 0.25), 
+              Q3 = quantile(sleptim1, probs = 0.75),
+              IQR = IQR(sleptim1))
+
+sleep_employment_summary
+```
+
+
+##### Sleep time vs Internet user  
+
+```{r}
+sleep_internet_summary <- select(df, sleptim1, internet) %>% 
+    filter(sleptim1 <= 24 &
+               internet!= 'NA') %>% 
+    group_by(internet) %>% 
+    summarise(sleep_time_mean = mean(sleptim1), 
+              sd = sd(sleptim1),
+              median = median(sleptim1), 
+              min = min(sleptim1), 
+              max = max(sleptim1), 
+              Q1 = quantile(sleptim1, probs = 0.25), 
+              Q3 = quantile(sleptim1, probs = 0.75),
+              IQR = IQR(sleptim1))
+
+sleep_internet_summary
+```
+
+
+
+
+#### sleep time plot {.tabset}
+
+
+##### sleep time vs sex 
+In this plot we will see whether sleep time vary in male and female.  
+
+```{r}
+sleep_sex_plot <- select(df, sleptim1, sex) %>% 
+    filter(sleptim1 <= 24 &
+               sex != 'NA') %>% 
+    ggplot(mapping = aes(x = sex, y = sleptim1))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = F,
+                 width = 0.5)+
+    xlab('Sex')+
+    ylab('Sleep Time in Hours')+
+    ggtitle('Difference in Sleep Time in Sex group' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+   
+    
+sleep_sex_plot
+```
+
+From the plot we can see that median sleeping time between male and female does not differ.  
+
+
+
+##### sleep time vs marital status  
+
+```{r fig.height=5, fig.width=10}
+sleep_marital_plot <- select(df, sleptim1, marital) %>% 
+    filter(sleptim1 <= 24 &
+               marital != 'NA') %>% 
+    ggplot(mapping = aes(x = marital, y = sleptim1))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = T)+
+    xlab('Marital Status')+
+    ylab('Sleep Time in Hours')+
+    ggtitle('Difference in Sleep Time at Marital Status level' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 0))
+sleep_marital_plot
+```
+
+Does not differ among different groups.
+
+##### sleep time vs education level  
+
+```{r sleep_education_plot}
+sleep_education_plot <- select(df, sleptim1, educa) %>% 
+    filter(sleptim1 <= 24 &
+               educa != 'NA') %>% 
+    ggplot(mapping = aes(x = educa, y = sleptim1))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = T)+
+    coord_flip()+
+    xlab('Education Level')+
+    ylab('Sleep Time in Hours')+
+    ggtitle('Difference in Sleep Time at Education level' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+sleep_education_plot
+```
+
+ Also does not differ among different groups.
+
+##### Sleep time vs Income level  
+
+```{r sleep_income_plot, fig.height=5, fig.width=10}
+sleep_income_plot <- select(df, sleptim1, income2) %>% 
+    filter(sleptim1 <= 24 &
+               income2 != 'NA') %>% 
+    ggplot(mapping = aes(x = income2, y = sleptim1))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = T)+
+    xlab('Income Level')+
+    ylab('Sleep Time in Hours')+
+    ggtitle('Difference in Sleep Time at Income level' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+sleep_income_plot
+```
+
+
+Does not differ among different groups.
+
+
+
+
+
+##### Sleep time vs Employment status  
+
+```{r sleep_employment_plot}
+sleep_employment_plot <- select(df, sleptim1, employ1) %>% 
+    filter(sleptim1 <= 24 &
+               employ1 != 'NA') %>% 
+    ggplot(mapping = aes(x = employ1, y = sleptim1))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = T)+
+    coord_flip()+
+    xlab('Employment Status')+
+    ylab('Sleep Time in Hours')+
+    ggtitle('Difference in Sleep Time at Employment Status' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+sleep_employment_plot
+```
+
+One thing to notice here those unable to work sleep less than any other employment groups.
+
+
+
+##### Sleep time vs Internet user  
+
+```{r}
+sleep_internet_plot <- select(df, sleptim1, internet) %>% 
+    filter(sleptim1 <= 24 &
+               internet != 'NA') %>% 
+    ggplot(mapping = aes(x = internet, y = sleptim1))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = T,
+                 width = 0.5)+
+    xlab('Internet User')+
+    ylab('Sleep Time in Hours')+
+    ggtitle('Difference in Sleep Time of Internet Users' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+sleep_internet_plot
+```
+
+Does not differ between groups.
+
+### Research Question 02   
+
+#### Overall General Health at Education level  
+
+
+```{r eval=FALSE, include=FALSE}
+library(reshape2)
+Ghealth_education_summary <- select(df, genhlth, educa) %>% 
+    filter(genhlth != 'NA' &
+               educa != 'NA')
+
+Ghealth_education_summary <- dcast(data = Ghealth_education_summary,
+                                   educa ~ genhlth,
+                                   fun.aggregate = length,
+                                   value.var = 'genhlth')
+Ghealth_education_summary <- as_tibble(Ghealth_education_summary)
+
+freq1 <- select(Ghealth_education_summary, -educa)
+prop <- as.matrix(freq1)
+prop <- prop.table(prop, margin = 1)
+prop <- as_tibble(prop)
+prop2 <- prop*100
+
+freq2 <- select(Ghealth_education_summary, educa)
+
+Ghealth_proportion <- cbind(freq2, prop)
+Ghealth_proportion <- as_tibble(Ghealth_proportion)
+
+Ghealth_proportion$VeryGood <- Ghealth_proportion$`Very good`
+
+
+Ghealth_proportion <- select(Ghealth_proportion, -'Very good' )
+Ghealth_proportion <- Ghealth_proportion[c(1,2,6,3,4,5)]
+Ghealth_proportion <- rename(Ghealth_proportion, 
+                             education = educa,
+                             A_excellent = Excellent,
+                             B_veryGood = VeryGood, 
+                             C_Good = Good,
+                             D_Fair = Fair,
+                             E_Poor = Poor)
+
+Ghealth_proportion_long <- gather(Ghealth_proportion, health, proportion, 2:6)
+Ghealth_education_summary
+Ghealth_proportion_percentage <- cbind(freq2, prop2)
+Ghealth_proportion_percentage
+```
+
+
+
+
+
+```{r heat_map, eval=FALSE, fig.align='center', fig.height=6, fig.width=10, include=FALSE}
+
+ggplot(Ghealth_proportion_long, aes(x = education, y = health))+
+     geom_tile(aes(fill = proportion) )+
+     scale_fill_gradient(low = 'white', high = 'steelblue')+
+     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+     
+
+
+```
+
+
+```{r fig.height=6, fig.width=10, fig.align='center'}
+Ghealth_education <- select(df, genhlth, educa) %>% 
+    filter(genhlth != 'NA' &
+               educa != 'NA') %>% 
+    ggplot()+
+    geom_bar(aes(educa, fill = genhlth), position = position_fill())+
+    xlab("Education")+
+    ylab("Overall Health in General")+
+    labs(fill = 'Overall Health in General')+
+    ggtitle('Overall health condition at education level')+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    
+    theme(plot.title = element_text(hjust = 0.5,size = 20))+ # for title
+    theme(axis.title.y = element_text(size =18))+ # for ylab
+    theme(axis.title.x = element_text(size =18))+
+    
+    scale_x_discrete(labels = c('Never attended school or only kindergarten'= 'Kindergarten',
+                                'Grades 1 through 8 (Elementary)'= 'Elementary',
+                                'Grades 9 though 11 (Some high school)' = 'Some high school',
+                                'Grade 12 or GED (High school graduate)' = 'High school graduate', 
+                                'College 1 year to 3 years (Some college or technical school)'= 'Some college',
+                                'College 4 years or more (College graduate)'= 'College graduate'))+  # change label old=new
+    theme(axis.text.x = element_text(size= 14, angle = 45, hjust = 1)) # axis text
+
+    
+Ghealth_education
+```
+
+form above plot, overall health condition is much better in some college and college graduate group than other groups.
+
+#### Number of days physical health not good at Education Level
+
+```{r}
+phys_health_education <- select(df, physhlth, educa) %>% 
+    filter(educa != 'NA' &
+               physhlth != 'NA' & physhlth <= 30)
+
+```
+
+```{r}
+summary(phys_health_education$physhlth)
+```
+Since median is zero 
+Here,  Number of days physical health not good zero means physical health was good for all 30 days. 
+
+lets remove those were 30 days in good health and compare those were at least not good one day. 
+
+```{r fig.width=10}
+phys_health_education <- select(df, physhlth, educa) %>% 
+    filter(educa != 'NA' &
+               physhlth != 'NA' & physhlth <= 30 & physhlth != 0) %>% 
+    ggplot()+
+    geom_boxplot(aes( x = educa, y = physhlth),
+                 outlier.colour = 'red',
+                 outlier.shape = 1,
+                 width = 0.5)+
+    xlab('Education')+
+    ylab('Number of days physical health not good')+
+    labs(fill = 'Physical Health')+
+    ggtitle('Number of the day physical health not good at education level')+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))+
+    coord_flip()
+    
+
+phys_health_education
+```
+
+Number of the day physical health was not good is less in who have college education than who don't have.
+
+### Research quesion 03  {.tabset}
+
+#### Stroke prevalence in sex level
+
+
+
+```{r}
+stroke_sex <- select(df, cvdstrk3, sex) %>% 
+    filter(cvdstrk3 != 'NA' &
+               sex != 'NA') %>% 
+    ggplot()+
+    geom_bar(aes(sex, fill = cvdstrk3), position = position_fill())+
+    xlab('Sex')+
+    ylab('Proportion')+
+    labs(fill = 'Stroke')+
+    ggtitle('Stroke Prevalance in Sex')+
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(panel.background = element_rect(fill = 'light blue'))
+    
+
+stroke_sex
+```
+
+No difference of stroke prevalence in male and female.
+
+#### stroke prevalance in income level  
+
+```{r}
+stroke_income <- select(df, cvdstrk3, income2) %>% 
+    filter(cvdstrk3 != 'NA' &
+               income2 != 'NA') %>% 
+    ggplot()+
+    geom_bar(aes(income2, fill= cvdstrk3), position = position_fill())+
+    coord_flip()+
+    xlab('Income')+
+    ylab('Proprotion')+
+    labs(fill = "Stroke")+
+    ggtitle('Stroke Prevalance at Income level')+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+    
+    
+
+stroke_income
+```
+
+Higher income people have less stroke prevalence compare to low income level.
