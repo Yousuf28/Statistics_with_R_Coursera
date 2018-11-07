@@ -1,6 +1,6 @@
 # Statistics_with_R_Coursera
 
-Click link below to see each project
+Click link below to see each project in RPubs.
 
 *** 
 
