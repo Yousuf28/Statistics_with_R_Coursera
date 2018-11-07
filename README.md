@@ -15,6 +15,8 @@ Click link below to see each project
 
 ***
 
+- [Bayesian Statistics](http://rpubs.com/Yousuf/437313)
+
 
 ## certificates
 
