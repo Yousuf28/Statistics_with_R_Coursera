@@ -1,6 +1,9 @@
+
 # Statistics_with_R_Coursera
 
 Click link below to see each project in RPubs.
+
+## Projects
 
 *** 
 
@@ -18,10 +21,23 @@ Click link below to see each project in RPubs.
 - [Bayesian Statistics](http://rpubs.com/Yousuf/437313)
 
 
-## certificates
+
+## Certificates
 
 ***
+
 - [Introduction to Probability and Data](https://www.coursera.org/account/accomplishments/certificate/WBMSZCNP7U3D)
 
 
 ***
+
+- [Inferential Statistics](https://www.coursera.org/account/accomplishments/certificate/NALQXCG24FBL)
+
+***
+
+- [Linear Regression and Modeling](https://www.coursera.org/account/accomplishments/certificate/HLHAK52NMVV2)
+
+***
+
+- [Bayesian Statistics](https://www.coursera.org/account/accomplishments/certificate/HMK7K5BVK9V4)
+
