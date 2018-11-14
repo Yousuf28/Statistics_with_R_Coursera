@@ -20,9 +20,11 @@ Click link below to see each project in RPubs.
 
 - [Bayesian Statistics](http://rpubs.com/Yousuf/437313)
 
+***************
 
+***************
 
-## Certificates
+### Certificates
 
 ***
 
