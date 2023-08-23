@@ -1,0 +1,66 @@
+Let's do another example. Consider a hospital where 400 patients are
+admitted over a month for heart attacks, and a month later 72 of them have died and
+328 of them have survived. We can ask,
+what's our estimate of the mortality rate? Under the frequentist paradigm, we must
+first establish our reference population. What do we think our
+reference population is here? One possibility is we could think about
+heart attack patients in the region. Another is we could think about heart
+attack patients that are admitted to this hospital, but
+over a longer period of time. Both of these might be reasonable
+attempts, but in this case our actual data are not a random sample
+from either of those populations. We could sort of pretend they are and
+move on, or we could also try to think harder about
+what a random sample situation might be. One would be, is we could think about all
+people in the region who might possibly have a heart attack and might possibly
+get admitted to this hospital. It's a bit of an odd
+hypothetical situation, and so there are some philosophical
+issues with the setup of this whole problem with the frequentist paradigm. In any case, let's forge forward and think
+about how we might do some estimation. We can say each patient comes
+from a Bernoulli distribution with unknown parameter theta. I'm now going to use the Greek letter
+theta because this is an unknown we're really trying to estimate. So the probability that
+Y i = 1 = theta for all the individuals admitted. In this case we're going to say
+that a success is mortality. The probability density function for the entire set of data we
+can write in vector form. Probability of all the Y's take some
+value of little y given a value of theta. So this is the probability Y 1
+takes some value little y 1, Y 2 takes some value little y 2,
+0 or 1, and so on up to Y n. Because we're viewing each
+of these as independent, then this is just the probability
+of each of these individual ones. So we can write this in product notation. And applying what we know about
+a Bernoulli, this then works out to be theta to the y sub i times 1
+minus theta to the 1 minus y sub i. This is the probability of observing
+the actual data that we collected, conditioned on a value
+of the parameter theta. We can now think about this
+expression as a function of theta. This is a concept of a likelihood. The likelihood function
+
+
+is this density function thought of as a function of theta. So we can write this L of theta given y. It looks like the same function, but up
+here this is a function of y given theta. And now we're thinking of it as
+a function of theta given y. This is not a probability
+distribution anymore, but it is still a function for theta. One way to estimate theta is that we
+
+
+choose the theta that gives us the largest value of the likelihood. It makes the data the most likely to occur
+for the particular data we observed. This is referred to as the maximum
+likelihood estimate, or MLE, maximum likelihood estimate. It's the theta that
+maximizes the likelihood. In practice, it's usually easier to
+maximize the natural logarithm of the likelihood,
+referred to as the log likelihood. At this point we usually drop
+the conditional notation on y as well. Since the logarithm is a monotone
+function, if we maximize the logarithm of the function,
+we also maximize the original function. In this case we're dealing with
+data that are independent and identically distributed. Sometimes we write that down as Y sub i,
+
+independent and identically distributed,
+iid, Bernoulli's theta. With independent identically
+distributed data, the likelihood is a product
+because they're independent. And therefore, when we take the log
+of a product we get a sum, and sums are much easier to work with. So in this case,
+the log likelihood is the log of the product of theta to the y sub i, 1 minus theta to the 1 minus y sub i. The log of our product
+is the sum of the logs. And when we take the log of the inside,
+the log of theta to the y sub i, we'll get simplification there as well. So that becomes y sub i times the log of theta plus 1 minus y sub i
+times the log of 1 minus theta. Now we can pull the thetas
+out because they don't change with i as we take the sum. And so this turns into the sum of
+the y sub i's times the log of theta, plus the sum of 1 minus y sub i
+times the log of 1 minus theta. How do we find the theta that
+maximizes this function? If you recall from calculus, we can maximize a function by taking
+the derivative and setting it equal to 0.

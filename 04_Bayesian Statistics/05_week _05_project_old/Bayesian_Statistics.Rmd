@@ -1,0 +1,413 @@
+---
+title: "Bayesian Modeling and Prediction for Movies Dataset"
+output: 
+  prettydoc::html_pretty: 
+    fig_height: 6
+    fig_width: 9
+    highlight: github
+    theme: tactile
+    toc: yes
+    df_print: kable
+    keep_md: true
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+library(BAS)
+```
+
+### Load data
+
+
+
+```{r load-data}
+load("movies.Rdata")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+In this study random sample were used and results can be generalized to the US population. Since no random assignment was used so causality can not be inferred. 
+
+* * *
+
+### Research Queastion
+
+Can we predict audience score from variable that are mentioned in project direction?
+
+## Part 2: Data manipulation
+
+lets explore the data 
+
+```{r}
+ 
+summary(movies)
+```
+
+Now create new variable: 
+
+```{r}
+
+movies <- movies %>% 
+    mutate(feature_film = ifelse(title_type == 'Feature Film', 'yes', 'no'),
+           drama =        ifelse(genre =='Drama', 'yes', 'no'),
+           mpaa_rating_R =  ifelse(mpaa_rating == 'R', 'yes', 'no'),
+           oscar_season = ifelse(thtr_rel_month %in% c(10:12), 'yes', 'no'),
+           summer_season = ifelse(thtr_rel_month %in% c(5:8), 'yes','no'))
+
+```
+
+explore the dataset again.
+
+```{r}
+glimpse(movies)
+```
+
+Now convert the newly created variable to factor type from character type.
+
+```{r}
+
+
+movies[c('feature_film',
+         'drama', 'mpaa_rating_R', 
+         'oscar_season',
+         'summer_season')] <- lapply(movies[c('feature_film', 
+                                                'drama', 'mpaa_rating_R', 
+                                                'oscar_season', 
+                                              'summer_season')], factor)
+```
+
+
+```{r}
+glimpse(movies)
+```
+
+
+
+Remove the NA value from runtime since we are going to use this as predictor later on.
+
+```{r}
+movies <- filter(movies, !is.na(runtime))
+```
+
+
+* * *
+
+## Part 3: Exploratory Data Analysis
+
+### Drama
+
+```{r}
+
+    ggplot(data = movies, mapping = aes(x = drama ,
+                                        y = audience_score, 
+                                        fill = drama))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = F,
+                 width = 0.5)+
+    xlab('Drama')+
+    ylab('Audience Score')+
+    ggtitle('Difference in Audience Score in Drama' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Mean audience score is higher for drama movies.
+
+```{r}
+
+select(movies, audience_score, drama) %>% 
+    group_by(drama) %>% 
+    summarise(audience_score_mean = mean(audience_score),
+              min = min(audience_score),
+              max = max(audience_score))
+```
+
+Mean audience score is 65.3 for drama category which is higher than movie that is not drama.
+
+
+### Feature Films
+
+```{r}
+select(movies, audience_score, feature_film) %>% 
+    group_by(feature_film) %>% 
+    summarise(audience_score_mean = mean(audience_score),
+              min = min(audience_score),
+              max = max(audience_score))
+```
+
+Feature Film has lower mean audience score which is 60.5.
+
+```{r}
+
+    ggplot(data = movies, mapping = aes(x = feature_film ,
+                                        y = audience_score, 
+                                        fill = feature_film))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = F,
+                 width = 0.5)+
+    xlab('Feature Film')+
+    ylab('Audience Score')+
+    ggtitle('Difference in Audience Score in Feature Film' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+Film that is not featured has higher mean audience score.
+
+### mpaa_rating_R
+
+```{r}
+select(movies, audience_score, mpaa_rating_R) %>% 
+    group_by(mpaa_rating_R )%>% 
+    summarise(audience_score_mean = mean(audience_score),
+              min = min(audience_score),
+              max = max(audience_score))
+```
+
+very little difference in mean audince score whether mpaa rating is R or not.
+
+
+```{r}
+ ggplot(data = movies, mapping = aes(x = mpaa_rating_R , 
+                                     y = audience_score,
+                                     fill = mpaa_rating_R))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = F,
+                 width = 0.5)+
+    xlab('mpaa_rating_R')+
+    ylab('Audience Score')+
+    ggtitle('Difference in Audience Score in mpaa_rating_R' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+We can also visualize the small differnce.
+
+### Oscar Season
+
+```{r}
+select(movies, audience_score, oscar_season) %>% 
+    group_by(oscar_season )%>% 
+    summarise(audience_score_mean = mean(audience_score),
+              min = min(audience_score),
+              max = max(audience_score))
+```
+
+
+mean audince score is 63.6 when movie release in oscar season which is higher.
+
+```{r}
+ ggplot(data = movies, mapping = aes(x = oscar_season , 
+                                     y = audience_score, 
+                                     fill = oscar_season))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = F,
+                 width = 0.5)+
+    xlab('Oscar Season')+
+    ylab('Audience Score')+
+    ggtitle('Difference in Audience Score in Oscar Season' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+difference can be visualize and we can see that difference is small.
+
+
+### Summaer Season
+
+```{r}
+select(movies, audience_score, summer_season) %>% 
+    group_by(summer_season )%>% 
+    summarise(audience_score_mean = mean(audience_score),
+              min = min(audience_score),
+              max = max(audience_score))
+```
+
+Mean audience score for summer season 61.8 which is lower than not release in summer season.
+
+
+```{r}
+ ggplot(data = movies, mapping = aes(x = summer_season,
+                                     y = audience_score, 
+                                     fill=summer_season))+
+    geom_boxplot(outlier.colour = 'red',
+                 outlier.shape = 1,
+                 notch = F,
+                 width = 0.5)+
+    xlab('Summer Season')+
+    ylab('Audience Score')+
+    ggtitle('Difference in Audience Score in Summer Season' )+
+    theme(panel.background = element_rect(fill = 'light blue'))+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+from the above plot we can see that movie that is released in summer season has lower mean audience score.
+
+
+* * *
+
+## Part 4: Modeling
+
+create a dataframe with required variaables.
+
+```{r}
+movies <- select( movies,
+                  audience_score,
+                 feature_film, 
+                 drama,
+                 runtime,
+                 mpaa_rating_R,
+                 thtr_rel_year,
+                 oscar_season,
+                 summer_season,
+                 imdb_rating,
+                 imdb_num_votes,
+                 critics_score,
+                 best_pic_nom,
+                 best_pic_win,
+                 best_actor_win,
+                 best_actress_win,
+                 best_dir_win,
+                 top200_box)
+```
+
+
+explore the dataset.
+
+```{r}
+summary(movies)
+```
+
+### Model
+
+
+```{r}
+model_bayes2 <- bas.lm(audience_score ~ ., 
+                       data=movies,
+                       method='MCMC', 
+                       prior='ZS-null',
+                       modelprior=uniform())
+```
+
+
+
+### Diagnostics
+
+
+```{r}
+plot(model_bayes2)
+```
+
+```{r}
+image(model_bayes2, rotate = F)
+```
+
+
+```{r}
+diagnostics(model_bayes2, type = 'model')
+```
+
+```{r}
+round(summary(model_bayes2),3)
+```
+
+
+### Coefficients
+
+We can plot the the important predictor ibdb raing and critics score from above image.
+
+```{r}
+par(mfrow = c(1,3))
+plot(coefficients(model_bayes2), subset = c(1,9,11), ask = FALSE)
+```
+
+
+
+* * *
+
+## Part 5: Prediction
+
+
+```{r}
+
+
+
+beast_find <- data.frame(audience_score=79,
+                         feature_film=factor("yes", levels=c("yes", "no")),
+                         drama=factor("no", levels=c("yes", "no")),
+                         runtime=132,
+                         mpaa_rating_R=factor("no", levels=c("yes", "no")),
+                         thtr_rel_year=2016,
+                         oscar_season=factor("yes", levels=c("yes", "no")),
+                         summer_season=factor("no", levels=c("yes", "no")),
+                         imdb_rating=7.4,
+                         imdb_num_votes=320961,
+                         critics_score=74,
+                         best_pic_nom=factor("no", levels=c("yes", "no")),
+                         best_pic_win=factor("no", levels=c("yes", "no")),
+                         best_actor_win=factor("no", levels=c("yes", "no")),
+                         best_actress_win=factor("no", levels=c("yes", "no")),
+                         best_dir_win=factor("no", levels=c("yes", "no")),
+                         top200_box=factor("no", levels=c("yes", "no")))
+                         
+```
+
+
+
+
+```{r}
+score_predic<- predict(model_bayes2, 
+                       newdata=beast_find, 
+                       estimator="BMA", 
+                       se.fit=TRUE)
+
+```
+
+```{r}
+#margin
+
+margin <- qt(0.95, df=score_predic$se.bma.pred[1]) *
+                     mean(score_predic$se.bma.pred)
+
+```
+
+```{r}
+beast_predic_interval <- data.frame(
+    'title'      ="Fantastic Beast and where to find them",
+    'prediction' =sprintf("%2.1f", score_predic$Ybma),
+    'interval'   =sprintf("%2.1f - %2.1f", score_predic$Ybma - margin,
+                          score_predic$Ybma + margin),
+    
+    'actual'     =79)
+
+beast_predic_interval
+```
+
+
+
+### Reference(s) 
+
+**Movie** - **FANTASTIC BEASTS AND WHERE TO FIND THEM (2016)**   
+**data source link** -
+[imdb](https://www.imdb.com/title/tt3183660/?ref_=nv_sr_2) and   [rottentomatoes](https://www.rottentomatoes.com/m/fantastic_beasts_and_where_to_find_them)
+
+* * *
+
+## Part 6: Conclusion
+
+Important predictor are imdb rating and critics score. 
