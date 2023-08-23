@@ -1,0 +1,84 @@
+---
+title: "Probability Distribution"
+output: github_document
+
+editor_options: 
+
+  chunk_output_type: inline
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Binomial Distribution
+Hospital records show that of patients suffering from a certain disease, 75% die of it. What is the probability that of 6 randomly
+selected patients,4  will recover?
+
+
+\usepackage{amsmath}
+$PMF  :   {{n}\choose{k}} \cdot p^k(1-p)^{n-k}$
+
+
+here, die = 75%
+so p= .25
+n= 6
+k=4
+ 
+```{r}
+dbinom(4, size = 6, prob = .25)
+```
+ 
+ 
+ plot the distribution
+ 
+```{r}
+library(tidyverse)
+y <- dbinom(0:6, 6, .25)
+y
+x <- c(0:6)
+x
+plot(x,y, type = 'h', col='blue')
+```
+ 
+ 
+ 
+
+### Bernoulli Distribution
+
+### Geometric Distribution
+
+### Hypergeometric Distribution
+
+### Negative binomial Distribution
+
+### Poisson Distribution
+
+### Normal Distribution
+
+### Exponential Distribution
+
+### Beta Distribution
+
+### Gamma Distribution
+
+### Cauchy Distribution
+
+### chi-squared 
+
+### Erlang Distribution
+
+### F distribution
+
+### Student's t distribution
+
+
+
+
+question: 
+
+
+
+

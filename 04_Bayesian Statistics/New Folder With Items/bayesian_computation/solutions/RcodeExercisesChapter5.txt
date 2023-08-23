@@ -1,0 +1,171 @@
+5.13
+-----
+
+1a) 
+
+# Setting up the problem in R: 
+
+> logposterior5.13.1 = function(theta, data) {
+data$y*theta -theta^2/(2*(0.25)^2)-data$n*log(1+exp(theta))
+}
+# Note: This function works also with theta as a vector! 
+> data <- list(y=5, n=5)
+
+# Find out approximately where the mode is. For example: 
+> theta <- seq(-2, 2, length=100)
+> plot(theta, logposterior5.13.1(theta), type="l")
+> theta <- seq(-1, 1, length=100)
+> plot(theta, exp(logposterior5.13.1(theta, data)), type="l")
+
+# We need to find the mode and the variance of the normal approximation: 
+> fit <- laplace(logposterior5.13.1, 0.2, data)
+
+# The posterior probability that theta is positive is 
+> pnorm(0, fit$mode, sqrt(fit$var), lower.tail=F)
+[1] 0.7263768
+
+
+1b) 
+
+# Note: When using the prior as a proposal function, the logposterior minus
+# the log prior is equal to the loglikelihood. The loglikelihood: 
+# data$y*theta - data$n*log(1+exp(theta))
+# can be shown to be an increasing function everywhere, with a limit equal to zero, 
+# when we have the data n=5, y=5. 
+# Thus it is always negative. 
+# The logposterior minus the logprior will thus always be less than zero, so we 
+# use zero as the third argument to rejectsampling below. 
+
+# If we, for simplicity, use the preprogrammed "rejectsampling" function, 
+# with a large number of degrees of freedom to get a normal distribution, we get
+> tpar <- list(m=0, var=0.25^2, df=10000)
+> theta <- rejectsampling(logposterior5.13.1, tpar, 0, 100000, data)
+
+# Note the very low acceptance rate! This is not a very good rejection sampling 
+# algorithm. 
+# The estimated posterior probability that theta is positive is
+> sum(theta>0)/length(theta)
+[1] 0.7082609
+
+1c) 
+
+> theta.s <- sir(logposterior5.13.1, tpar, 10000, data)
+> sum(theta.s>0)/length(theta.s)
+[1] 0.7291
+
+2a) 
+
+# Note how the transformed posterior density is derived: 
+# You need to differentiate the inverse function of the logit, to get the 
+# extra factor exp(eta)/(1+exp(eta))^2
+
+# Setting up the problem in R: 
+> logposterior5.13.2 <- function(eta, data) { 
++ data[1]*log(2+exp(eta)/(1+exp(eta)))-(data[2]+data[3]-1)*
++ log(1+exp(eta)) + (data[4]+1)*(eta - log(1+exp(eta))) }
+# Again, it works on vectors.
+> data <- c(125, 18, 20, 34)
+
+#Exploring the posterior: 
+> eta <- seq(-2, 2, length=100)
+> plot(eta, logposterior5.13.2(eta, data), type="l")
+
+#Find a normal approximation: 
+> fit3 <- laplace(logposterior5.13.2, 0.5, data)
+
+# A 95% posterior probability interval for eta: 
+> credinterval <- fit3$mode +c(-1,1)*1.96*sqrt(fit3$var)
+> credinterval 
+[1] 0.1353010 0.9988352
+> exp(credinterval)/(1+exp(credinterval))
+[1] 0.5337737 0.7308295
+
+
+2b) 
+
+# Let us first try a t-distribution with 1 df. First, we need to find the constant c. 
+> f2 <- function(eta, data) { logposterior5.13.2(eta, data) - dmt(eta, mean=c(fit3$mode), S=fit3$var,
+  df = 1, log=TRUE) }
+# The function f2 is now actually bimodal; try for example 
+> f2(c(laplace(f2, 0, 10, data)$mode), data)
+> f2(c(laplace(f2, 1, 10, data)$mode), data) 
+# So be aware of this possible problem! It may not happen with a higher df. 
+# We use
+> fit4 <- laplace(f2, 1, 10, data)
+> maxval <- f2(fit4$mode, data)
+> tpar <- list(m=c(fit3$mode), var=fit3$var, df=1) 
+> eta <- rejectsampling(logposterior5.13.2, tpar, maxval, 10000, data)
+
+
+
+
+4a) 
+
+>  logposterior5.13.4 <- function(theta, data) {
++ regpts <- theta[1]+ theta[2]*(1:length(data))
++ sum(data*regpts - exp(regpts))
++ }
+> data5.13.4 <- c(15, 11, 14, 17, 5, 11, 10, 4, 8, 10, 7, 9, 11, 3, 6, 1, 1, 4) 
+
+4b) 
+
+# First investigat the posterior, for example with 
+> mycontour(logposterior5.13.4, c(2, 4, -0.2, 0.1), data5.13.4)
+# Then: 
+fit5 <- laplace(logposterior5.13.4, c(2.7, -0.1), data5.13.4)
+> fit5$mode[1,2]
+[1] -0.08376908
+> sqrt(fit5$var[2,2])
+[1] 0.01679959
+>
+
+4c)  
+
+>  tparNew <- list(m = c(fit5$mode), var = fit5$var, df = 3)
+> theta <- sir(logposterior5.13.4, tparNew, 1000, data5.13.4)
+>  mean(theta[,2])
+[1] -0.08355938
+> sd(theta[,2])
+[1] 0.01647572
+>
+
+5a) 
+
+>  logposterior5.13.5 <- function(lambda, data) {
++ - lambda*sum(data[1:3])+(data[2]+2*data[3]-1)*log(lambda) +
++ data[4]*log(1-exp(-lambda)*(1+lambda+lambda^2/2))
++ }
+> data5.13.5 <- c(11,37, 64, 128)
+
+> logposterior5.13.5theta <- function(theta, data) logposterior5.13.5(exp(theta), data) + theta
+# Investigate: 
+> theta <- seq(-2, 4, length=100)
+> plot(theta, logposterior5.13.5theta(theta, data5.13.5))
+>
+> fit6 <- laplace(logposterior5.13.5theta, 1, data5.13.5)
+> fit6
+$mode
+         [,1]
+[1,] 1.055054
+
+$var
+            [,1]
+[1,] 0.002026642
+
+$int
+          [,1]
+[1,] -226.8685
+
+$converge
+[1] TRUE
+
+$iter
+[1] 3
+
+
+
+
+
+
+
+
