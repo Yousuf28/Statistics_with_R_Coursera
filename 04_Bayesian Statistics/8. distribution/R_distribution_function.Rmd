@@ -1,0 +1,208 @@
+---
+title: "distribution function in R"
+output: html_notebook
+---
+
+### Normal Distribution
+
+generate normal distribution dataset.
+
+```{r}
+normal_dataset <- rnorm(200, mean = 24, sd=3)
+
+```
+
+
+so this dataset have N=200, mean =24 and sd=3.
+
+```{r}
+hist(normal_dataset)
+
+```
+
+$$\mu = mean$$
+$$\sigma= standard.deviation$$
+
+$$f(x|\mu,\sigma) = \frac{1}{\sigma \sqrt{2 \pi}}~\exp \left( - \frac{(x - \mu )^2}
+{2 \sigma^2} \right)$$
+
+```{r}
+#prob <- (1/(s * sqrt(2*pi))) * exp(-((x-mu)^2)/(2*s^2))
+p_normal_dis <- function(x, mu=0, s=1) {
+    p <- (1/(s * sqrt(2*pi))) * exp(-((x-mu)^2)/(2*s^2))
+    p
+}
+```
+
+```{r}
+prob <- p_normal_dis(normal_dataset,24,3)
+```
+
+```{r}
+y_dnor <- dnorm(normal_dataset, mean = 24, sd=3)
+```
+
+
+```{r}
+plot(normal_dataset, prob, col='blue')
+plot(normal_dataset, y_dnor, col='red')
+```
+
+```{r}
+pnorm(30, mean = 24, sd=3, lower.tail = T)
+```
+
+```{r}
+qnorm(.9772499, 24, 3)
+```
+
+
+
+
+$$Z= \frac{x-\mu}{\sigma}$$
+
+```{r}
+z_score <- function(x) {
+    mu <- mean(x)
+    sd <- sd(x)
+    z <- (x-mu)/sd
+    z
+}
+```
+
+```{r}
+z_data <- z_score(normal_dataset)
+```
+
+```{r}
+hist(z_data)
+```
+
+
+```{r}
+plot(z_data,prob)
+```
+
+
+```{r}
+
+dnorm(23, mean = 24, sd=3)
+```
+
+```{r}
+qnorm(.3, mean = 24, sd=3)
+```
+
+```{r}
+pnorm(23, mean = 24, sd=3)
+```
+
+```{r}
+qnorm(.3694413, mean = 24, sd=3)
+```
+
+
+
+
+### binomial distribution
+
+n trial,   
+k successes, __(with replacement) __   
+fixed probability  
+
+$$PMF  :   {{n}\choose{k}} \cdot p^k(1-p)^{n-k}$$
+
+
+```{r}
+num_flips <- 10
+coin <- c('head', 'tail') # head 1, tail 0, or success 1, failure 0
+flips <- list(sample(coin, size = num_flips, replace = TRUE))
+flips
+```
+
+```{r}
+binom_dataset <- rbinom(2000, 10, 0.5)
+```
+
+```{r}
+p_dbinom <- dbinom(binom_dataset, 10, .5)
+```
+
+```{r}
+plot(binom_dataset, p_dbinom)
+```
+
+
+
+[link](https://www.tutorialspoint.com/r/r_binomial_distribution.htm)
+
+```{r}
+# Create a sample of 50 numbers which are incremented by 1.
+x <- seq(0,50,by = 1)
+
+# Create the binomial distribution.
+y <- dbinom(x,50,0.5)
+```
+
+pbinom()
+
+This function gives the cumulative probability of an event. It is a single value representing the probability.
+
+```{r}
+# Probability of getting 26 or less heads from a 51 tosses of a coin.
+x <- pbinom(26,51,0.5)
+
+x
+```
+
+qbinom()
+
+This function takes the probability value and gives a number whose cumulative value matches the probability value.
+
+```{r}
+# How many heads will have a probability of 0.25 will come out when a coin
+# is tossed 51 times.
+x <- qbinom(0.25,51,1/2)
+x
+```
+
+This function generates required number of random values of given probability from a given sample.
+
+```{r}
+# Find 8 random values from a sample of 150 with probability of 0.4.
+x <- rbinom(8,150,.4)
+x
+```
+
+
+### beta distribution
+
+[link for parameter calculation](https://stats.stackexchange.com/questions/12232/calculating-the-parameters-of-a-beta-distribution-using-the-mean-and-variance)
+
+
+
+
+
+```{r}
+#beta distribution
+
+alpha <- 81
+beta <- 219
+
+data_beta <- rbeta(100, alpha, beta)
+plot(data_beta, dbeta(data_beta, alpha, beta), col='red')
+
+
+#new 300 n added. success 100, miss 200
+plot(data_beta, dbeta(data_beta, 181, 419), col='green')
+
+```
+
+```{r}
+estBetaParams <- function(mu, var) {
+  alpha <- ((1 - mu) / var - 1 / mu) * mu ^ 2
+  beta <- alpha * (1 / mu - 1)
+  return(params = list(alpha = alpha, beta = beta))
+}
+```
+
